@@ -25,11 +25,15 @@ class Clustering:
         self.protocol_type = protocol_type
         
     def evaluation(self, clustering_result_true, clustering_result_method):
-        print("[++++++++] Evaluation Clustering results")
+        print("[++++++++] Evaluate Clustering results")
         results_list = list()
         labels_true_list, labels_method_list = list(), list()
         for test_id in [0, 1]:
             results_true = clustering_result_true[test_id]
+            if len(results_true) == 0:
+                logging.error("The groundtruth could not be empty when evaluating clustering results")
+                return
+
             dict_kwtoi = dict()
             for i,kw in enumerate(sorted(set(results_true), key=results_true.index)):
                 dict_kwtoi[kw] = i
@@ -63,9 +67,13 @@ class Clustering:
         results_list.append([h, c, v])
 
     def cluster_by_kw_true(self, messages):
-        logging.debug("\n[++++++++] Cluster by True Keyword")
-
+        print("[++++++++] Cluster by True Keyword")
         results = list()
+
+        if not self.protocol_type:
+            logging.error("The protocol_type (-t) is required for computing the true clustering")
+            return results
+        
         for message in messages:
             kw = self.get_true_keyword(message)
             results.append(kw)
@@ -94,7 +102,7 @@ class Clustering:
         elif self.protocol_type == "zeroaccess":
             kw = message.data[4:8]
         else:
-            logging.error("The protocol_type is not unknown")
+            logging.error("The protocol_type is unknown")
 
         if type(kw).__name__ == "bytes":
             kw = str(kw.hex())
